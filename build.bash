@@ -6,3 +6,4 @@ cmake ..
 make
 cd ..
 ln -s build/pymodule*.so ./pymodule.so 
+python3 test.py
