@@ -56,3 +56,66 @@ print("\nTesting pymodule:")
 print(calculator.multiply_to_n(NUMBER_TO_TEST))
 end_time = time.time()
 print(f"Time taken: {end_time - start_time} seconds")
+
+
+
+
+
+# print("\nTesting sum of squares implementations:")
+# import threading
+# import multiprocessing
+# import time
+# import numpy as np
+# from concurrent.futures import ThreadPoolExecutor
+# from functools import partial
+
+# # Parameters for the test
+# RANGE_SIZE = 100_000_000
+# num_threads = multiprocessing.cpu_count()
+
+# # Pure Python implementation
+# def calculate_square(x):
+#     return x * x
+
+# start_time = time.perf_counter_ns()
+# pure_python_result = sum(calculate_square(i) for i in range(RANGE_SIZE))
+# end_time = time.perf_counter_ns()
+# print(f"\nPure Python Result: {pure_python_result}")
+# print(f"Pure Python Time: {(end_time - start_time)/1000000} milliseconds")
+
+# # Threading implementation
+# def thread_worker(start, end):
+#     return sum(i * i for i in range(start, end))
+
+# start_time = time.perf_counter_ns()
+# chunk_size = RANGE_SIZE // num_threads
+# futures = []
+
+# with ThreadPoolExecutor(max_workers=num_threads) as executor:
+#     for i in range(num_threads):
+#         start = i * chunk_size
+#         end = start + chunk_size if i < num_threads - 1 else RANGE_SIZE
+#         futures.append(executor.submit(thread_worker, start, end))
+
+# threaded_result = sum(f.result() for f in futures)
+# end_time = time.perf_counter_ns()
+# print(f"\nThreaded Result: {threaded_result}")
+# print(f"Threading Time: {(end_time - start_time)/1000000} milliseconds")
+
+# # Multiprocessing implementation
+# def process_worker(chunk):
+#     start, end = chunk
+#     return sum(i * i for i in range(start, end))
+
+# if __name__ == "__main__":
+#     start_time = time.perf_counter_ns()
+#     chunks = [(i * chunk_size, (i + 1) * chunk_size if i < num_threads - 1 else RANGE_SIZE) 
+#              for i in range(num_threads)]
+    
+#     with multiprocessing.Pool(processes=num_threads) as pool:
+#         results = pool.map(process_worker, chunks)
+    
+#     multiprocess_result = sum(results)
+#     end_time = time.perf_counter_ns()
+#     print(f"\nMultiprocessing Result: {multiprocess_result}")
+#     print(f"Multiprocessing Time: {(end_time - start_time)/1000000} milliseconds")
