@@ -90,7 +90,13 @@ PyMODINIT_FUNC PyInit_pymodule(void) {
 
 // Boost.Python implementation
 
+
+
+
 #include <boost/python.hpp>
+#include <thread>
+#include <vector>
+#include <numeric>
 
 class TestCalculator {
 public:
@@ -121,6 +127,82 @@ public:
         }
         return result;
     }
+
+    long long sumToNThreaded(int n, int num_threads = std::thread::hardware_concurrency()) {
+        if (n < 0) {
+            PyErr_SetString(PyExc_ValueError, "Parameter must be non-negative");
+            boost::python::throw_error_already_set();
+        }
+
+        if (n == 0) return 0;
+
+        if (n < num_threads) {
+            num_threads = n;
+        }
+        
+        std::vector<std::thread> threads;
+        std::vector<long long> partial_sums(num_threads);
+        
+        int chunk_size = n / num_threads;
+        
+        for (int i = 0; i < num_threads; ++i) {
+            int start = i * chunk_size + 1;
+            int end = (i == num_threads - 1) ? n : (i + 1) * chunk_size;
+            
+            threads.emplace_back([start, end, &partial_sums, i]() {
+                long long sum = 0;
+                for (int j = start; j <= end; ++j) {
+                    sum += j;
+                }
+                partial_sums[i] = sum;
+            });
+        }
+        
+        for (auto& thread : threads) {
+            thread.join();
+        }
+        
+        return std::accumulate(partial_sums.begin(), partial_sums.end(), 0LL);
+    }
+
+    long long multiplyToNThreaded(int n, int num_threads = std::thread::hardware_concurrency()) {
+        if (n < 0) {
+            PyErr_SetString(PyExc_ValueError, "Parameter must be non-negative");
+            boost::python::throw_error_already_set();
+        }
+        
+        if (n == 0) return 0;
+        if (n == 1) return 1;
+
+        if (n < num_threads) {
+            num_threads = n;
+        }
+        
+        std::vector<std::thread> threads;
+        std::vector<long long> partial_products(num_threads);
+        
+        int chunk_size = n / num_threads;
+        
+        for (int i = 0; i < num_threads; ++i) {
+            int start = i * chunk_size + 1;
+            int end = (i == num_threads - 1) ? n : (i + 1) * chunk_size;
+            
+            threads.emplace_back([start, end, &partial_products, i]() {
+                long long product = 1;
+                for (int j = start; j <= end; ++j) {
+                    product *= j;
+                }
+                partial_products[i] = product;
+            });
+        }
+        
+        for (auto& thread : threads) {
+            thread.join();
+        }
+        
+        return std::accumulate(partial_products.begin(), partial_products.end(), 1LL, 
+                             std::multiplies<long long>());
+    }
 };
 
 BOOST_PYTHON_MODULE(pymodule)
@@ -129,5 +211,11 @@ BOOST_PYTHON_MODULE(pymodule)
     
     class_<TestCalculator>("TestCalculator")
         .def("sum_to_n", &TestCalculator::sumToN, "Sum all integers from 1 to n")
-        .def("multiply_to_n", &TestCalculator::multiplyToN, "Multiply all integers from 1 to n");
+        .def("multiply_to_n", &TestCalculator::multiplyToN, "Multiply all integers from 1 to n")
+        .def("sum_to_n_threaded", &TestCalculator::sumToNThreaded, 
+             (arg("n"), arg("num_threads") = std::thread::hardware_concurrency()),
+             "Sum all integers from 1 to n using multiple threads")
+        .def("multiply_to_n_threaded", &TestCalculator::multiplyToNThreaded,
+             (arg("n"), arg("num_threads") = std::thread::hardware_concurrency()),
+             "Multiply all integers from 1 to n using multiple threads");
 }
